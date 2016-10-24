@@ -47,6 +47,7 @@ public class TakePhotoActivity extends AppCompatActivity {
         setContentView(R.layout.activity_take_photo);
 
         intent = getIntent();
+        //
 
         mButtons = (LinearLayout) findViewById(R.id.buttons);
 
