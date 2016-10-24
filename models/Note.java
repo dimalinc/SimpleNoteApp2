@@ -1,8 +1,11 @@
 package com.okason.simplenotepad.models;
 
 import android.database.Cursor;
+import android.net.Uri;
 
 import com.okason.simplenotepad.utilities.Constants;
+
+import java.util.ArrayList;
 
 /**
  * Created by Valentine on 9/28/2015.
@@ -14,10 +17,15 @@ public class Note {
     private long dateCreated;
     private long dateModified;
 
+    private ArrayList<Uri> picturesUriArrayList;
+
 
     public static Note getNotefromCursor(Cursor cursor){
         Note note = new Note();
-        note.setId(cursor.getLong(cursor.getColumnIndex(Constants.COLUMN_ID)));
+        note.setId(
+                cursor.getLong(
+                        cursor.getColumnIndex(
+                                Constants.COLUMN_ID)));
         note.setTitle(cursor.getString(cursor.getColumnIndex(Constants.COLUMN_TITLE)));
         note.setContent(cursor.getString(cursor.getColumnIndex(Constants.COLUMN_CONTENT)));
         note.setDateCreated(cursor.getLong(cursor.getColumnIndex(Constants.COLUMN_CREATED_TIME)));

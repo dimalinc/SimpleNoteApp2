@@ -1,5 +1,6 @@
 package com.okason.simplenotepad.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -8,6 +9,8 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 
 import com.okason.simplenotepad.R;
 import com.okason.simplenotepad.fragments.NotePlainEditorFragment;
@@ -46,6 +49,8 @@ public class NoteEditorActivity extends AppCompatActivity {
                 Log.d("myLogs","no fragment bundle args in NoteEditorActivity.onCreate");
                 openFragment(NotePlainEditorFragment.newInstance(0), "Editor");
             }
+
+
 
 
 
