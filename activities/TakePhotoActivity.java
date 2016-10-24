@@ -89,18 +89,18 @@ public class TakePhotoActivity extends AppCompatActivity {
                 new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+
+
+
                         Uri pictureFile;
-
-
-
                         try {
                             pictureFile = generateFile();
                             savePhotoInFile(pictureData, pictureFile);
                             // TODO передать имя файла в NoteActivity
 
-                            Intent intent = new Intent();
+                            /*Intent intent = new Intent();
                             intent.putExtra("pictureFileUri", pictureFile.toString());
-                            setResult(RESULT_OK, intent);
+                            setResult(RESULT_OK, intent);*/
 
                             Toast.makeText(mContext, "Save file: " + pictureFile, Toast.LENGTH_LONG).show();
 
@@ -114,7 +114,8 @@ public class TakePhotoActivity extends AppCompatActivity {
 
                         hideConfirm();
 
-                        finish();
+                        // может убрать finish?
+                       // finish();
 
 			        	/*if (intent.hasExtra(MediaStore.EXTRA_OUTPUT)) {
 			        		pictureFile = (Uri)intent.getExtras().getParcelable(MediaStore.EXTRA_OUTPUT);
