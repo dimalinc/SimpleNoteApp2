@@ -144,4 +144,12 @@ public class MainActivity extends AppCompatActivity {
                 .commit();
         getSupportActionBar().setTitle(title);
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+    }
+
+
 }

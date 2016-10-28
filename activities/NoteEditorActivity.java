@@ -50,11 +50,6 @@ public class NoteEditorActivity extends AppCompatActivity {
                 openFragment(NotePlainEditorFragment.newInstance(0), "Editor");
             }
 
-
-
-
-
-
          }
     }
 
@@ -89,4 +84,6 @@ public class NoteEditorActivity extends AppCompatActivity {
                 .commit();
         getSupportActionBar().setTitle(title);
     }
+
+
 }

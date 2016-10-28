@@ -28,8 +28,13 @@ import com.okason.simplenotepad.activities.NoteEditorActivity;
 import com.okason.simplenotepad.activities.TakePhotoActivity;
 import com.okason.simplenotepad.data.NoteManager;
 import com.okason.simplenotepad.models.Note;
+import com.okason.simplenotepad.models.UriList;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.LinkedList;
+
+import static android.app.Activity.RESULT_OK;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -45,6 +50,9 @@ public class NotePlainEditorFragment extends Fragment {
 
     private static final int PHOTO_INTENT_REQUEST_CODE = 100;
     Uri mUri;
+
+    ArrayList<Uri> arrayListUri = new ArrayList<>();
+
 
 
     public NotePlainEditorFragment() {
@@ -74,7 +82,6 @@ public class NotePlainEditorFragment extends Fragment {
 
             if (id > 0) {
                 mCurrentNote = NoteManager.newInstance(getActivity()).getNote(id);
-
                 // TODO добавлено мной для теста - хз может убрать
 
 
@@ -116,15 +123,22 @@ public class NotePlainEditorFragment extends Fragment {
 
                 Intent intent = new Intent(getActivity(),TakePhotoActivity.class);
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, mUri);
+
+
+                Log.d("myLogs","mCurrentNote.getId() = " + mCurrentNote.getId());
+
+                intent.putExtra("note.id", mCurrentNote.getId());
                 startActivityForResult(intent, PHOTO_INTENT_REQUEST_CODE);
 
-                 startActivity(new Intent(getActivity(), TakePhotoActivity.class));
+                // startActivity(new Intent(getActivity(), TakePhotoActivity.class));
             }
         });
 
 
         return mRootView;
     }
+
+
 
     private Uri generateFileUri() {
         if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) return null;
@@ -238,5 +252,35 @@ public class NotePlainEditorFragment extends Fragment {
         alertDialog.show();
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        Uri uri;
+        UriList uriList = null;
+
+        if (requestCode == PHOTO_INTENT_REQUEST_CODE) {
+            if (resultCode == RESULT_OK)
+            try {
+
+                uriList = (UriList) data.getParcelableExtra("uriList");
+
+                arrayListUri = uriList.takePhotoActivityUriArrayList;
+
+                StringBuilder sb = new StringBuilder();
+
+                for (Uri uri2:arrayListUri) {
+                    sb.append(uri2.toString() + " ");
+                }
+
+                mCurrentNote.setContent(mCurrentNote.getContent() + " _-_ " + sb.toString());
+            } catch (NullPointerException e) {
+                mCurrentNote.setContent(mCurrentNote.getContent() + " null uriListOBJECT got from PhotoActivity");
+                Log.d("myLogs"," null uriListOBJECT got from PhotoActivity");
+            }
+
+
+        }
+    }
 
 }

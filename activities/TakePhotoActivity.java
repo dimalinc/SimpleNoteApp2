@@ -21,9 +21,13 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.okason.simplenotepad.R;
+import com.okason.simplenotepad.data.NoteManager;
+import com.okason.simplenotepad.models.Note;
+import com.okason.simplenotepad.models.UriList;
 
 import java.io.File;
 import java.io.OutputStream;
+import java.util.ArrayList;
 
 
 public class TakePhotoActivity extends AppCompatActivity {
@@ -40,13 +44,24 @@ public class TakePhotoActivity extends AppCompatActivity {
     Intent intent;
     byte[] pictureData;
 
+    Note note;
+
+     UriList uriList;
+  //  ArrayList<Uri> takePhotoActivityUriArrayList = new ArrayList<>();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_take_photo);
 
+        uriList = new UriList();
+
         intent = getIntent();
+
+        long noteId = intent.getLongExtra("note.id",0);
+        Log.d("myLogs","noteId got from intent in the TakePhotoActivity = " + noteId);
+      //  note = NoteManager.newInstance(this).getNote(noteId);
         //
 
         mButtons = (LinearLayout) findViewById(R.id.buttons);
@@ -95,7 +110,14 @@ public class TakePhotoActivity extends AppCompatActivity {
                         Uri pictureFile;
                         try {
                             pictureFile = generateFile();
+
+                            uriList.takePhotoActivityUriArrayList.add(pictureFile);
+
                             savePhotoInFile(pictureData, pictureFile);
+
+                            intent.putExtra("uriList", uriList);
+                            setResult(RESULT_OK,intent);
+
                             // TODO передать имя файла в NoteActivity
 
                             /*Intent intent = new Intent();
@@ -110,12 +132,13 @@ public class TakePhotoActivity extends AppCompatActivity {
                         }
 
 
-                        mCamera.startPreview();
+                       // mCamera.startPreview();
 
                         hideConfirm();
 
+
                         // может убрать finish?
-                       // finish();
+                        finish();
 
 			        	/*if (intent.hasExtra(MediaStore.EXTRA_OUTPUT)) {
 			        		pictureFile = (Uri)intent.getExtras().getParcelable(MediaStore.EXTRA_OUTPUT);
@@ -136,6 +159,10 @@ public class TakePhotoActivity extends AppCompatActivity {
                     }
                 }
         );
+    }
+
+    void addPhotoUriInArrayList(Uri uri) {
+
     }
 
     private Camera openCamera() {
