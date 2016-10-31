@@ -34,9 +34,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mToolbar = (Toolbar)findViewById(R.id.toolbar);
+        mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
-       // getSupportActionBar().setDisplayHomeAsUpEnabled(false); //remove this line in the MainActivity.java
+        // getSupportActionBar().setDisplayHomeAsUpEnabled(false); //remove this line in the MainActivity.java
 
         /*if (savedInstanceState == null){
             NotePlainEditorFragment fragment = new NotePlainEditorFragment();
@@ -59,14 +59,14 @@ public class MainActivity extends AppCompatActivity {
                 .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
                     @Override
                     public boolean onItemClick(View view, int i, IDrawerItem drawerItem) {
-                        if (drawerItem != null && drawerItem instanceof Nameable){
-                            String name = ((Nameable)drawerItem).getName().getText(MainActivity.this);
+                        if (drawerItem != null && drawerItem instanceof Nameable) {
+                            String name = ((Nameable) drawerItem).getName().getText(MainActivity.this);
                             mToolbar.setTitle(name);
                         }
 
-                        if (drawerItem != null){
+                        if (drawerItem != null) {
                             int selectedScren = drawerItem.getIdentifier();
-                            switch (selectedScren){
+                            switch (selectedScren) {
                                 case 1:
                                     //go to List of Notes
                                     openFragment(new NoteListFragment(), "Notes");
@@ -106,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
                 .withFireOnInitialOnClick(true)
                 .withSavedInstance(savedInstanceState)
                 .build();
-        if (savedInstanceState == null){
+        if (savedInstanceState == null) {
             result.setSelection(1);
         }
 
@@ -135,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void openFragment(final Fragment fragment, String title){
+    private void openFragment(final Fragment fragment, String title) {
         getSupportFragmentManager()
                 .beginTransaction()
                 .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)

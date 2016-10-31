@@ -45,7 +45,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
             mCamera.setPreviewDisplay(mHolder);
             mCamera.startPreview();
         } catch (IOException e) {
-            Toast.makeText(mContext, "Camera preview failed", Toast.LENGTH_LONG).show();
+            Toast.makeText(mContext, "Camera preview failed in surfaceChanged()", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -55,7 +55,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
             mCamera.setPreviewDisplay(holder);
             mCamera.startPreview();
         } catch (IOException e) {
-            Toast.makeText(mContext, "Camera preview failed", Toast.LENGTH_LONG).show();
+            Toast.makeText(mContext, "Camera preview failed in surfaceCreated()", Toast.LENGTH_LONG).show();
         }
     }
 

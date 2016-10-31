@@ -39,7 +39,9 @@ public class DatabaseHelper extends SQLiteOpenHelper{
             + Constants.COLUMN_TITLE + " text not null, "
             + Constants.COLUMN_CONTENT + " text not null, "
             + Constants.COLUMN_MODIFIED_TIME + " integer not null, "
-            + Constants.COLUMN_CREATED_TIME + " integer not null " + ")";
+            + Constants.COLUMN_CREATED_TIME + " integer not null, "
+                + Constants.COLUMN_PHOTOS_URI_LIST + " text not null"
+                + ")";
 
 
 }

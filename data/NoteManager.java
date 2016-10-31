@@ -5,10 +5,19 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.okason.simplenotepad.models.Note;
+import com.okason.simplenotepad.models.UriList;
 import com.okason.simplenotepad.utilities.Constants;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -39,6 +48,14 @@ public class NoteManager {
         values.put(Constants.COLUMN_CONTENT, note.getContent());
         values.put(Constants.COLUMN_CREATED_TIME, System.currentTimeMillis());
         values.put(Constants.COLUMN_MODIFIED_TIME, System.currentTimeMillis());
+
+        // TODO поменять на ручной парсинг
+        //String arrayListString= new Gson().toJson(note.getUriList(), ArrayList.class);
+
+        String arrayListString = convertArrayListUriToString(note.getUriList());
+
+        values.put(Constants.COLUMN_PHOTOS_URI_LIST, arrayListString);
+
         Uri result = mContext.getContentResolver().insert(NoteContentProvider.CONTENT_URI, values);
         long id = Long.parseLong(result.getLastPathSegment());
         return id;
@@ -50,8 +67,28 @@ public class NoteManager {
         values.put(Constants.COLUMN_CONTENT, note.getContent());
         values.put(Constants.COLUMN_CREATED_TIME, System.currentTimeMillis());
         values.put(Constants.COLUMN_MODIFIED_TIME, System.currentTimeMillis());
+
+        String arrayListString = convertArrayListUriToString(note.getUriList());
+
+        values.put(Constants.COLUMN_PHOTOS_URI_LIST, arrayListString);
+
         mContext.getContentResolver().update(NoteContentProvider.CONTENT_URI,
                 values, Constants.COLUMN_ID  + "=" + note.getId(), null);
+
+    }
+
+    static String convertArrayListUriToString(ArrayList<Uri> uriList) {
+        StringBuilder sb = new StringBuilder();
+        for (Uri uri: uriList) {
+
+            if (uriList.size() == 0)
+                return null;
+
+            sb.append(uri.toString());
+            sb.append(Constants.URI_DELIMITER);
+        }
+
+        return sb.toString();
 
     }
 

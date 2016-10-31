@@ -19,20 +19,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TabHost;
 import android.widget.Toast;
 
 import com.okason.simplenotepad.R;
 import com.okason.simplenotepad.activities.MainActivity;
-import com.okason.simplenotepad.activities.NoteEditorActivity;
 import com.okason.simplenotepad.activities.TakePhotoActivity;
 import com.okason.simplenotepad.data.NoteManager;
 import com.okason.simplenotepad.models.Note;
-import com.okason.simplenotepad.models.UriList;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.LinkedList;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -41,12 +37,13 @@ import static android.app.Activity.RESULT_OK;
  */
 public class NotePlainEditorFragment extends Fragment {
 
-    Button button;
+    Button buttonTakePhoto;
 
     private View mRootView;
     private EditText mTitleEditText;
     private EditText mContentEditText;
-    private Note mCurrentNote = null;
+
+    private Note mCurrentNote;
 
     private static final int PHOTO_INTENT_REQUEST_CODE = 100;
     Uri mUri;
@@ -82,9 +79,6 @@ public class NotePlainEditorFragment extends Fragment {
 
             if (id > 0) {
                 mCurrentNote = NoteManager.newInstance(getActivity()).getNote(id);
-                // TODO добавлено мной для теста - хз может убрать
-
-
                 //  Log.d("myLogs", "got mCurrentNote = " + mCurrentNote.getId());
             }
         }
@@ -109,9 +103,9 @@ public class NotePlainEditorFragment extends Fragment {
         mRootView = inflater.inflate(R.layout.fragment_note_plain_editor, container, false);
         mTitleEditText = (EditText) mRootView.findViewById(R.id.edit_text_title);
         mContentEditText = (EditText) mRootView.findViewById(R.id.edit_text_note);
-        button = (Button) mRootView.findViewById(R.id.button);
+        buttonTakePhoto = (Button) mRootView.findViewById(R.id.button);
 
-        button.setOnClickListener(new View.OnClickListener() {
+        buttonTakePhoto.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
@@ -124,10 +118,11 @@ public class NotePlainEditorFragment extends Fragment {
                 Intent intent = new Intent(getActivity(),TakePhotoActivity.class);
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, mUri);
 
+                 saveNote();
 
-                Log.d("myLogs","mCurrentNote.getId() = " + mCurrentNote.getId());
+                //  Log.d("myLogs","mCurrentNote.getId() = " + mCurrentNote.getId());
 
-                intent.putExtra("note.id", mCurrentNote.getId());
+              //  intent.putExtra("note.id", mCurrentNote.getId());
                 startActivityForResult(intent, PHOTO_INTENT_REQUEST_CODE);
 
                 // startActivity(new Intent(getActivity(), TakePhotoActivity.class));
@@ -192,7 +187,12 @@ public class NotePlainEditorFragment extends Fragment {
 
     private void populateFields() {
         mTitleEditText.setText(mCurrentNote.getTitle());
-        mContentEditText.setText(mCurrentNote.getContent());
+
+        //TODO убрать в конце тестирования
+
+        mContentEditText.setText(mCurrentNote.getContent()
+                /*+ " ------------------------- "
+                + mCurrentNote.getUriList().toString()*/ );
     }
 
 
@@ -212,14 +212,27 @@ public class NotePlainEditorFragment extends Fragment {
 
 
         if (mCurrentNote != null) {
+
             mCurrentNote.setContent(content);
             mCurrentNote.setTitle(title);
+
+
+
+            mCurrentNote.setUriList(arrayListUri);
+
             NoteManager.newInstance(getActivity()).update(mCurrentNote);
 
         } else {
+
             Note note = new Note();
+
             note.setTitle(title);
             note.setContent(content);
+
+            note.setUriList(arrayListUri);
+
+            mCurrentNote = note;
+
             NoteManager.newInstance(getActivity()).create(note);
         }
         return true;
@@ -256,28 +269,42 @@ public class NotePlainEditorFragment extends Fragment {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        Uri uri;
-        UriList uriList = null;
+
+        ArrayList<Uri> uriList = new ArrayList<>();
+
 
         if (requestCode == PHOTO_INTENT_REQUEST_CODE) {
-            if (resultCode == RESULT_OK)
-            try {
+            if (resultCode == RESULT_OK) {
+                // try {
 
-                uriList = (UriList) data.getParcelableExtra("uriList");
+                ArrayList<String> stringUriList;
 
-                arrayListUri = uriList.takePhotoActivityUriArrayList;
+                stringUriList = data.getStringArrayListExtra("uriList");
+
+                Log.d("myLogs", "stringUriList.size() in NotePlainEditorFragment = " + stringUriList.size()
+                        + " stringUriList = " + stringUriList.toString());
+
+
+                for (String string : stringUriList) {
+                    uriList.add(Uri.parse(string));
+                }
+
+                arrayListUri.addAll(uriList/*.takePhotoActivityUriArrayList*/);
 
                 StringBuilder sb = new StringBuilder();
 
-                for (Uri uri2:arrayListUri) {
-                    sb.append(uri2.toString() + " ");
+                for (Uri uri2 : arrayListUri) {
+                    sb.append(uri2.toString() + " .*^*. ");
                 }
 
-                mCurrentNote.setContent(mCurrentNote.getContent() + " _-_ " + sb.toString());
-            } catch (NullPointerException e) {
+                mCurrentNote.setContent(mCurrentNote.getContent() + " ----GOT_PHOTOS_LIST_FROM_PHOTO_INTENT--------------------- " + sb.toString());
+            }
+            /*} catch (NullPointerException e) {
+
+                Toast.makeText(getContext()," null uriListOBJECT got from PhotoActivity",Toast.LENGTH_LONG);
                 mCurrentNote.setContent(mCurrentNote.getContent() + " null uriListOBJECT got from PhotoActivity");
                 Log.d("myLogs"," null uriListOBJECT got from PhotoActivity");
-            }
+            }*/
 
 
         }

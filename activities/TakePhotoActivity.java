@@ -33,7 +33,7 @@ import java.util.ArrayList;
 public class TakePhotoActivity extends AppCompatActivity {
 
 
-    ImageButton capture, recapture, save;
+    ImageButton capture, recapture, save, finishPhotoActivity;
     CameraPreview preview;
     Camera mCamera;
     FrameLayout mFrame;
@@ -46,7 +46,8 @@ public class TakePhotoActivity extends AppCompatActivity {
 
     Note note;
 
-     UriList uriList;
+     ArrayList<Uri> uriList;
+     //UriList uriList;
   //  ArrayList<Uri> takePhotoActivityUriArrayList = new ArrayList<>();
 
 
@@ -55,12 +56,13 @@ public class TakePhotoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_take_photo);
 
-        uriList = new UriList();
+        //uriList = new UriList();
+        uriList = new ArrayList<Uri>();
 
         intent = getIntent();
 
-        long noteId = intent.getLongExtra("note.id",0);
-        Log.d("myLogs","noteId got from intent in the TakePhotoActivity = " + noteId);
+        /*long noteId = intent.getLongExtra("note.id",0);
+        Log.d("myLogs","noteId got from intent in the TakePhotoActivity = " + noteId);*/
       //  note = NoteManager.newInstance(this).getNote(noteId);
         //
 
@@ -68,7 +70,7 @@ public class TakePhotoActivity extends AppCompatActivity {
 
         mContext = this;
 
-       /* mCamera = openCamera(); //1
+        /*mCamera = openCamera(); //1
         if (mCamera == null) { //2
             Toast.makeText(this, "Opening camera failed", Toast.LENGTH_LONG).show();
             return;
@@ -105,40 +107,14 @@ public class TakePhotoActivity extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
 
-
-
-                        Uri pictureFile;
-                        try {
-                            pictureFile = generateFile();
-
-                            uriList.takePhotoActivityUriArrayList.add(pictureFile);
-
-                            savePhotoInFile(pictureData, pictureFile);
-
-                            intent.putExtra("uriList", uriList);
-                            setResult(RESULT_OK,intent);
-
-                            // TODO передать имя файла в NoteActivity
-
-                            /*Intent intent = new Intent();
-                            intent.putExtra("pictureFileUri", pictureFile.toString());
-                            setResult(RESULT_OK, intent);*/
-
-                            Toast.makeText(mContext, "Save file: " + pictureFile, Toast.LENGTH_LONG).show();
-
-
-                        } catch (Exception e) {
-                            Toast.makeText(mContext, "Error: can't save file", Toast.LENGTH_LONG).show();
-                        }
-
-
-                       // mCamera.startPreview();
+                        afterSaveCLicked();
 
                         hideConfirm();
 
+                        mCamera.startPreview();
 
                         // может убрать finish?
-                        finish();
+
 
 			        	/*if (intent.hasExtra(MediaStore.EXTRA_OUTPUT)) {
 			        		pictureFile = (Uri)intent.getExtras().getParcelable(MediaStore.EXTRA_OUTPUT);
@@ -159,10 +135,50 @@ public class TakePhotoActivity extends AppCompatActivity {
                     }
                 }
         );
+
+        finishPhotoActivity = (ImageButton) findViewById(R.id.finishPhotoActivity);
+        finishPhotoActivity.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                afterSaveCLicked();
+                hideConfirm();
+
+              //  mCamera.stopPreview();
+                onPause();
+
+                ArrayList<String> stringUriList = new ArrayList<>();
+                for (Uri uri: uriList) {
+                    stringUriList.add(uri.toString());
+                }
+
+                uriList.clear();
+
+                Log.d("myLogs","stringUriList.size() in TakePhotoActivity = " + stringUriList.size()
+                        + " stringUriList = " + stringUriList.toString());
+
+                intent.putStringArrayListExtra("uriList", stringUriList);
+                setResult(RESULT_OK,intent);
+
+                finish();
+            }
+        });
     }
 
-    void addPhotoUriInArrayList(Uri uri) {
+    void afterSaveCLicked() {
+        Uri pictureFile;
+        try {
+            pictureFile = generateFile();
 
+            uriList/*.takePhotoActivityUriArrayList*/.add(pictureFile);
+
+            savePhotoInFile(pictureData, pictureFile);
+
+            Toast.makeText(mContext, "Save file: " + pictureFile, Toast.LENGTH_LONG).show();
+
+        } catch (Exception e) {
+            Toast.makeText(mContext, "Error: can't save file", Toast.LENGTH_LONG).show();
+        }
     }
 
     private Camera openCamera() {
@@ -249,7 +265,7 @@ public class TakePhotoActivity extends AppCompatActivity {
         super.onResume();
         mCamera = openCamera();
         if (mCamera == null) {
-            Toast.makeText(this, "Opening camera failed", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Opening camera failed in TakePhotoActivity onResume()", Toast.LENGTH_LONG).show();
             return;
         }
 
