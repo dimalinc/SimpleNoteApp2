@@ -4,11 +4,15 @@ package com.okason.simplenotepad.fragments;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -17,13 +21,18 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Gallery;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.okason.simplenotepad.R;
 import com.okason.simplenotepad.activities.MainActivity;
+import com.okason.simplenotepad.activities.NoteEditorActivity;
 import com.okason.simplenotepad.activities.TakePhotoActivity;
+import com.okason.simplenotepad.adapter.PicAdapter;
 import com.okason.simplenotepad.data.NoteManager;
 import com.okason.simplenotepad.models.Note;
 
@@ -36,6 +45,20 @@ import static android.app.Activity.RESULT_OK;
  * A simple {@link Fragment} subclass.
  */
 public class NotePlainEditorFragment extends Fragment {
+
+    //variable for selection intent
+    private final int PICKER = 1;
+    //variable to store the currently selected image
+    public static int currentPic = 0;
+
+    //adapter for gallery view
+
+    private  PicAdapter imgAdapt;
+
+    //gallery object
+    private  Gallery picGallery;
+    //image view for larger display
+    private  ImageView picView;
 
     Button buttonTakePhoto;
 
@@ -51,6 +74,114 @@ public class NotePlainEditorFragment extends Fragment {
     ArrayList<Uri> arrayListUri = new ArrayList<>();
 
 
+
+
+
+
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+
+
+        // Inflate the layout for this fragment
+        mRootView = inflater.inflate(R.layout.fragment_note_plain_editor, container, false);
+        mTitleEditText = (EditText) mRootView.findViewById(R.id.edit_text_title);
+        mContentEditText = (EditText) mRootView.findViewById(R.id.edit_text_note);
+        buttonTakePhoto = (Button) mRootView.findViewById(R.id.button);
+
+        buttonTakePhoto.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                mUri = generateFileUri();
+                if (mUri == null) {
+                    Toast.makeText(getActivity(), "SD card not available", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                Intent intent = new Intent(getActivity(),TakePhotoActivity.class);
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, mUri);
+
+                saveNote();
+
+                //  Log.d("myLogs","mCurrentNote.getId() = " + mCurrentNote.getId());
+
+                //  intent.putExtra("note.id", mCurrentNote.getId());
+                startActivityForResult(intent, PHOTO_INTENT_REQUEST_CODE);
+
+                // startActivity(new Intent(getActivity(), TakePhotoActivity.class));
+            }
+        });
+
+
+        //get the large image view
+        picView = (ImageView) mRootView.findViewById(R.id.picture);
+
+        //get the gallery view
+        picGallery = (Gallery) mRootView.findViewById(R.id.gallery);
+//create a new adapter
+        imgAdapt = new PicAdapter(getContext(), mCurrentNote);
+
+        picGalleryInit();
+
+        return mRootView;
+    }
+
+    void picGalleryInit() {
+
+
+
+//set the gallery adapter
+        picGallery.setAdapter(imgAdapt);
+
+
+
+        //set long click listener for each gallery thumbnail item
+        picGallery.setOnItemLongClickListener(new Gallery.OnItemLongClickListener() {
+            //handle long clicks
+            public boolean onItemLongClick(AdapterView<?> parent, View v, int position, long id) {
+                //take user to choose an image
+//update the currently selected position so that we assign the imported bitmap to correct item
+                currentPic = position;
+
+//take the user to their chosen image selection app (gallery or file manager)
+                Intent pickIntent = new Intent();
+                pickIntent.setType("image/*");
+                pickIntent.setAction(Intent.ACTION_GET_CONTENT);
+//we will handle the returned data in onActivityResult
+                startActivityForResult(Intent.createChooser(pickIntent, "Select Picture"), PICKER);
+
+                return true;
+            }
+        });
+
+
+        //set the click listener for each item in the thumbnail gallery
+        picGallery.setOnItemClickListener(new Gallery.OnItemClickListener() {
+            //handle clicks
+            public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
+                //set the larger image view to display the chosen bitmap calling method of adapter class
+                picView.setImageBitmap(imgAdapt.getPic(position));
+            }
+        });
+
+
+
+    }
+
+    private Uri generateFileUri() {
+        if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) return null;
+        File path = new File(Environment.getExternalStorageDirectory(), "CameraTest");
+        if (!path.exists()) {
+            if (!path.mkdirs()) {
+                return null;
+            }
+        }
+        String timeStamp = String.valueOf(System.currentTimeMillis());
+        File newFile = new File(path.getPath() + File.separator + timeStamp + ".jpg");
+        return Uri.fromFile(newFile);
+    }
 
     public NotePlainEditorFragment() {
         // Required empty public constructor
@@ -90,62 +221,10 @@ public class NotePlainEditorFragment extends Fragment {
         setHasOptionsMenu(true);
         getCurrentNote();
 
+
+
         // TODO я добавил - убрать или оставить?
         //onResume();
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-
-
-        // Inflate the layout for this fragment
-        mRootView = inflater.inflate(R.layout.fragment_note_plain_editor, container, false);
-        mTitleEditText = (EditText) mRootView.findViewById(R.id.edit_text_title);
-        mContentEditText = (EditText) mRootView.findViewById(R.id.edit_text_note);
-        buttonTakePhoto = (Button) mRootView.findViewById(R.id.button);
-
-        buttonTakePhoto.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                mUri = generateFileUri();
-                if (mUri == null) {
-                    Toast.makeText(getActivity(), "SD card not available", Toast.LENGTH_LONG).show();
-                    return;
-                }
-
-                Intent intent = new Intent(getActivity(),TakePhotoActivity.class);
-                intent.putExtra(MediaStore.EXTRA_OUTPUT, mUri);
-
-                 saveNote();
-
-                //  Log.d("myLogs","mCurrentNote.getId() = " + mCurrentNote.getId());
-
-              //  intent.putExtra("note.id", mCurrentNote.getId());
-                startActivityForResult(intent, PHOTO_INTENT_REQUEST_CODE);
-
-                // startActivity(new Intent(getActivity(), TakePhotoActivity.class));
-            }
-        });
-
-
-        return mRootView;
-    }
-
-
-
-    private Uri generateFileUri() {
-        if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) return null;
-        File path = new File(Environment.getExternalStorageDirectory(), "CameraTest");
-        if (!path.exists()) {
-            if (!path.mkdirs()) {
-                return null;
-            }
-        }
-        String timeStamp = String.valueOf(System.currentTimeMillis());
-        File newFile = new File(path.getPath() + File.separator + timeStamp + ".jpg");
-        return Uri.fromFile(newFile);
     }
 
     @Override
@@ -153,6 +232,95 @@ public class NotePlainEditorFragment extends Fragment {
         super.onResume();
         if (mCurrentNote != null) {
             populateFields();
+
+            /*if (mCurrentNote.getUriList().size() > 0)
+            for (Uri uri: mCurrentNote.getUriList() ) {
+                populateImageAdapter(uri);
+            }*/
+
+           // picGalleryInit();
+
+        }
+    }
+
+    void populateImageAdapter(Uri uri) {
+        Uri addingUri = uri;
+
+        //declare the bitmap
+        Bitmap pic = null;
+
+        //declare the path string
+        String imgPath = "";
+
+        //retrieve the string using media data
+        String[] medData = { MediaStore.Images.Media.DATA };
+        //query the data
+        /*Cursor picCursor = getContext().getContentResolver().query(addingUri, medData, null, null, null);
+        if(picCursor!=null)
+        {
+            //get the path string
+            int index = picCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            picCursor.moveToFirst();
+            imgPath = picCursor.getString(index);
+        }
+        else */
+            imgPath = addingUri.getPath();
+
+
+       // picCursor.close();
+
+        // ТУТ НАЧИНАЕТСЯ ДЕКОДИРОВАНИЕ РАЗМЕРА РИСУНКА
+        // - может вынести в отдельную процедуру?
+
+        //if we have a new URI attempt to decode the image bitmap
+        if(addingUri!=null) {
+            //set the width and height we want to use as maximum display
+            // TODO вынести параметры ресемпла изображений в настройки или в параметры
+            int targetWidth = 600;
+            int targetHeight = 400;
+
+            //create bitmap options to calculate and use sample size
+            BitmapFactory.Options bmpOptions = new BitmapFactory.Options();
+
+            //first decode image dimensions only - not the image bitmap itself
+            bmpOptions.inJustDecodeBounds = true;
+            BitmapFactory.decodeFile(imgPath, bmpOptions);
+
+            //image width and height before sampling
+            int currHeight = bmpOptions.outHeight;
+            int currWidth = bmpOptions.outWidth;
+
+            //variable to store new sample size
+            int sampleSize = 1;
+
+            //calculate the sample size if the existing size is larger than target size
+            if (currHeight>targetHeight || currWidth>targetWidth)
+            {
+                //use either width or height
+                if (currWidth>currHeight)
+                    sampleSize = Math.round((float)currHeight/(float)targetHeight);
+                else
+                    sampleSize = Math.round((float)currWidth/(float)targetWidth);
+            }
+
+            //use the new sample size
+            bmpOptions.inSampleSize = sampleSize;
+
+            //now decode the bitmap using sample options
+            bmpOptions.inJustDecodeBounds = false;
+
+            //get the file as a bitmap
+            pic = BitmapFactory.decodeFile(imgPath, bmpOptions);
+
+            //pass bitmap to ImageAdapter to add to array
+            imgAdapt.addPic(pic);
+//redraw the gallery thumbnails to reflect the new addition
+            picGallery.setAdapter(imgAdapt);
+
+            //display the newly selected image at larger size
+            picView.setImageBitmap(pic);
+//scale options
+            picView.setScaleType(ImageView.ScaleType.FIT_CENTER);
         }
     }
 
@@ -291,13 +459,14 @@ public class NotePlainEditorFragment extends Fragment {
 
                 arrayListUri.addAll(uriList/*.takePhotoActivityUriArrayList*/);
 
-                StringBuilder sb = new StringBuilder();
+                // Выводим УРИ полученных фото в содержиое заметки - было нужно для отладки
+                /*StringBuilder sb = new StringBuilder();
 
                 for (Uri uri2 : arrayListUri) {
                     sb.append(uri2.toString() + " .*^*. ");
-                }
+                }*/
 
-                mCurrentNote.setContent(mCurrentNote.getContent() + " ----GOT_PHOTOS_LIST_FROM_PHOTO_INTENT--------------------- " + sb.toString());
+                mCurrentNote.setContent(mCurrentNote.getContent() /*+ " ----GOT_PHOTOS_LIST_FROM_PHOTO_INTENT--------------------- " + sb.toString()*/);
             }
             /*} catch (NullPointerException e) {
 
@@ -307,6 +476,102 @@ public class NotePlainEditorFragment extends Fragment {
             }*/
 
 
+
+            if (mCurrentNote.getUriList().size() > 0)
+                for (Uri uri: mCurrentNote.getUriList() ) {
+                    populateImageAdapter(uri);
+                }
+
+            picGalleryInit();
+        }
+
+        if (resultCode == RESULT_OK) {
+            //check if we are returning from picture selection
+            if (requestCode == PICKER) {
+                //import the image
+
+                //the returned picture URI
+                Uri pickedUri = data.getData();
+
+                //declare the bitmap
+                Bitmap pic = null;
+
+                //declare the path string
+                String imgPath = "";
+
+                //retrieve the string using media data
+                String[] medData = { MediaStore.Images.Media.DATA };
+                //query the data
+                Cursor picCursor = getContext().getContentResolver().query(pickedUri, medData, null, null, null);
+                if(picCursor!=null)
+                {
+                    //get the path string
+                    int index = picCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+                    picCursor.moveToFirst();
+                    imgPath = picCursor.getString(index);
+                }
+                else
+                    imgPath = pickedUri.getPath();
+
+
+                picCursor.close();
+
+                // ТУТ НАЧИНАЕТСЯ ДЕКОДИРОВАНИЕ РАЗМЕРА РИСУНКА
+                // - может вынести в отдельную процедуру?
+
+                //if we have a new URI attempt to decode the image bitmap
+                if(pickedUri!=null) {
+                    //set the width and height we want to use as maximum display
+                    // TODO вынести параметры ресемпла изображений в настройки или в параметры
+                    int targetWidth = 600;
+                    int targetHeight = 400;
+
+                    //create bitmap options to calculate and use sample size
+                    BitmapFactory.Options bmpOptions = new BitmapFactory.Options();
+
+                    //first decode image dimensions only - not the image bitmap itself
+                    bmpOptions.inJustDecodeBounds = true;
+                    BitmapFactory.decodeFile(imgPath, bmpOptions);
+
+                    //image width and height before sampling
+                    int currHeight = bmpOptions.outHeight;
+                    int currWidth = bmpOptions.outWidth;
+
+                    //variable to store new sample size
+                    int sampleSize = 1;
+
+                    //calculate the sample size if the existing size is larger than target size
+                    if (currHeight>targetHeight || currWidth>targetWidth)
+                    {
+                        //use either width or height
+                        if (currWidth>currHeight)
+                            sampleSize = Math.round((float)currHeight/(float)targetHeight);
+                        else
+                            sampleSize = Math.round((float)currWidth/(float)targetWidth);
+                    }
+
+                    //use the new sample size
+                    bmpOptions.inSampleSize = sampleSize;
+
+                    //now decode the bitmap using sample options
+                    bmpOptions.inJustDecodeBounds = false;
+
+                    //get the file as a bitmap
+                    pic = BitmapFactory.decodeFile(imgPath, bmpOptions);
+
+                    //pass bitmap to ImageAdapter to add to array
+                    imgAdapt.addPic(pic);
+//redraw the gallery thumbnails to reflect the new addition
+                    picGallery.setAdapter(imgAdapt);
+
+                    //display the newly selected image at larger size
+                    picView.setImageBitmap(pic);
+//scale options
+                    picView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                }
+
+
+            }
         }
     }
 

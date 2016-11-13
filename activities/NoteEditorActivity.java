@@ -10,12 +10,18 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.Gallery;
+import android.widget.ImageView;
 
 import com.okason.simplenotepad.R;
+import com.okason.simplenotepad.adapter.PicAdapter;
 import com.okason.simplenotepad.fragments.NotePlainEditorFragment;
 
 public class NoteEditorActivity extends AppCompatActivity {
+
+
 
     private Toolbar mToolbar;
 
@@ -23,6 +29,7 @@ public class NoteEditorActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_note_editor);
+
 
 
         mToolbar = (Toolbar)findViewById(R.id.toolbar);
@@ -50,8 +57,11 @@ public class NoteEditorActivity extends AppCompatActivity {
                 openFragment(NotePlainEditorFragment.newInstance(0), "Editor");
             }
 
+
+
          }
     }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
