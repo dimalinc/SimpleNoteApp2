@@ -41,7 +41,7 @@ public class NoteManager {
         values.put(Constants.COLUMN_CREATED_TIME, System.currentTimeMillis());
         values.put(Constants.COLUMN_MODIFIED_TIME, System.currentTimeMillis());
 
-        // TODO поменять на ручной парсинг
+        // TODO поменять на ручной парсинг - ВЫПОЛНЕНО
         //String arrayListString= new Gson().toJson(note.getUriList(), ArrayList.class);
 
         String arrayListString = convertArrayListUriToString(note.getUriList());

@@ -263,6 +263,10 @@ public class NotePlainEditorFragment extends Fragment {
 
     void populateImageAdapter() {
 
+       // imgAdapt = new PicAdapter(getContext(), mCurrentNote);
+
+        currentPic = 0;
+
         imgAdapt.clear();
 
         try {
@@ -402,8 +406,9 @@ public class NotePlainEditorFragment extends Fragment {
 
         String title = mTitleEditText.getText().toString();
         if (TextUtils.isEmpty(title)) {
-            mTitleEditText.setError("Title is required");
-            return false;
+            title = "note" + String.valueOf(System.currentTimeMillis());;
+            /*mTitleEditText.setError("Title is required");
+            return false;*/
         }
 
         String content = mContentEditText.getText().toString();
@@ -418,8 +423,6 @@ public class NotePlainEditorFragment extends Fragment {
             mCurrentNote.setContent(content);
             mCurrentNote.setTitle(title);
 
-
-
            // это может это делать в onActivityResult??
 
            // mCurrentNote.setUriList(fragmentArrayListUri);
@@ -428,13 +431,14 @@ public class NotePlainEditorFragment extends Fragment {
 
             if (fragmentArrayListUri.size() > 0) {
                 mCurrentNote.addToUriList(fragmentArrayListUri);
-                fragmentArrayListUri.clear();
+
             }
 
             Log.d("myLogsUri","mCurrentNote.getUriList().toString() after updating note" + mCurrentNote.getUriList().toString());
 
-
             NoteManager.newInstance(getActivity()).update(mCurrentNote);
+
+            fragmentArrayListUri.clear();
 
         } else {
 
@@ -455,12 +459,14 @@ public class NotePlainEditorFragment extends Fragment {
 
             if (fragmentArrayListUri.size() > 0) {
                 mCurrentNote.addToUriList(fragmentArrayListUri);
-                fragmentArrayListUri.clear();
+
             }
 
             Log.d("myLogsUri","mCurrentNote.getUriList().toString() after creating note" + mCurrentNote.getUriList().toString());
 
-            NoteManager.newInstance(getActivity()).create(mCurrentNote);
+           mCurrentNote.setId(NoteManager.newInstance(getActivity()).create(mCurrentNote));
+
+            fragmentArrayListUri.clear();
         }
         return true;
 
@@ -479,7 +485,7 @@ public class NotePlainEditorFragment extends Fragment {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 NoteManager.newInstance(getActivity()).delete(mCurrentNote);
-                makeToast(titleOfNoteTobeDeleted + "deleted");
+                makeToast(titleOfNoteTobeDeleted + " deleted");
                 startActivity(new Intent(getActivity(), MainActivity.class));
             }
         });
@@ -522,6 +528,10 @@ public class NotePlainEditorFragment extends Fragment {
                     Log.d("myLogsUri","fragmentArrayListUri.size() before addAll = " + fragmentArrayListUri.size() + ", fragmentArrayListUri = " + fragmentArrayListUri.toString());
                     fragmentArrayListUri.addAll(uriListFromPhotoIntent/*.takePhotoActivityUriArrayList*/);
                     Log.d("myLogsUri","fragmentArrayListUri.size() after addAll = " + fragmentArrayListUri.size() + ", fragmentArrayListUri = " + fragmentArrayListUri.toString());
+
+
+                    saveNote();
+                    populateImageAdapter();
 
 
                    /* try {
