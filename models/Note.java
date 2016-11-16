@@ -28,25 +28,36 @@ public class Note implements Parcelable {
     private ArrayList<Uri> uriList;
 
     public ArrayList<Uri> getUriList() {
+       // if (uriList != null)
         return uriList;
+      //  else return new ArrayList<Uri>();
     }
+
 
     public void setUriList(ArrayList<Uri> uriList) {
         this.uriList = uriList;
     }
 
+    public void addToUriList(Uri uri) {
+        this.uriList.add(uri);
+    }
 
+    public void addToUriList(ArrayList<Uri> uriList) {
+        this.uriList.addAll(uriList);
+    }
 
 
     public Note() {
+       // this.uriList= new ArrayList<>();
     }
 
-    public static Note getNotefromCursor(Cursor cursor) {
+    public static Note getNoteFromCursor(Cursor cursor) {
         Note note = new Note();
+
         note.setId(
                 cursor.getLong(
-                        cursor.getColumnIndex(
-                                Constants.COLUMN_ID)));
+                        cursor.getColumnIndex(Constants.COLUMN_ID)));
+
         note.setTitle(cursor.getString(cursor.getColumnIndex(Constants.COLUMN_TITLE)));
         note.setContent(cursor.getString(cursor.getColumnIndex(Constants.COLUMN_CONTENT)));
         note.setDateCreated(cursor.getLong(cursor.getColumnIndex(Constants.COLUMN_CREATED_TIME)));
@@ -56,9 +67,16 @@ public class Note implements Parcelable {
         note.setPicturesUriArrayList( uriArrayListFromGson );*/
 
         //
+
+
+
         String arrayListStringFromDB = cursor.getString(cursor.getColumnIndex(Constants.COLUMN_PHOTOS_URI_LIST));
 
+        Log.d("myLogsUri","arrayListStringFromDB for further parsing = " + arrayListStringFromDB);
+
         ArrayList<Uri> uriList = parseArrayListUriFromString(arrayListStringFromDB);
+
+        Log.d("myLogsUri","parseArrayListUriFromString = " + uriList.toString());
 
         note.setUriList(uriList);
         //
@@ -85,12 +103,16 @@ public class Note implements Parcelable {
          if (arrayListStringFromDB == null)
              return uriList;
 
-       String[] arrayListUriSplittedStrings =  arrayListStringFromDB.split(Constants.URI_DELIMITER);
+         Log.d("myLogsUri","arrayListStringFromDB = " + arrayListStringFromDB);
+
+         String[] arrayListUriSplittedStrings =  arrayListStringFromDB.split(Constants.URI_DELIMITER);
+
         for (String uriString:arrayListUriSplittedStrings) {
             uriList.add(Uri.parse(uriString));
         }
 
         Log.d("myLogsUri","uriList parsed from DB size() = " + uriList.size());
+        Log.d("myLogsUri","parsed uriList.toString() = " + uriList.toString());
         for (Uri uri: uriList) {
             Log.d("myLogsUri",uri.toString());
         }

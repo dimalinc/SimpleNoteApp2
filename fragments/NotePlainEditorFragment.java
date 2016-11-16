@@ -12,7 +12,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -30,7 +29,6 @@ import android.widget.Toast;
 
 import com.okason.simplenotepad.R;
 import com.okason.simplenotepad.activities.MainActivity;
-import com.okason.simplenotepad.activities.NoteEditorActivity;
 import com.okason.simplenotepad.activities.TakePhotoActivity;
 import com.okason.simplenotepad.adapter.PicAdapter;
 import com.okason.simplenotepad.data.NoteManager;
@@ -53,12 +51,12 @@ public class NotePlainEditorFragment extends Fragment {
 
     //adapter for gallery view
 
-    private  PicAdapter imgAdapt;
+    private PicAdapter imgAdapt;
 
     //gallery object
-    private  Gallery picGallery;
+    private Gallery picGallery;
     //image view for larger display
-    private  ImageView picView;
+    private ImageView picView;
 
     Button buttonTakePhoto;
 
@@ -71,17 +69,34 @@ public class NotePlainEditorFragment extends Fragment {
     private static final int PHOTO_INTENT_REQUEST_CODE = 100;
     Uri mUri;
 
-    ArrayList<Uri> arrayListUri = new ArrayList<>();
+    ArrayList<Uri> fragmentArrayListUri/* = new ArrayList<Uri>()*/;
 
 
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+        getCurrentNote();
 
+        try {
+            Log.d("myLogs", "in onCreate got  mCurrentNote.getUriList().toString() = "
+                    + mCurrentNote.getUriList().toString());
+            Toast.makeText(getActivity(), mCurrentNote.getUriList().toString(), Toast.LENGTH_SHORT).show();
+        } catch (NullPointerException e) {Log.d("myLogs",
+                "in onCreate got  mCurrentNote.getUriList().toString() = "
+                + " No uriList found");
+            Toast.makeText(getActivity(), " No uriList found", Toast.LENGTH_SHORT).show();}
 
-
+    // currentPic = 0;
+    }
 
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+
+        fragmentArrayListUri = new ArrayList<>();
 
 
         // Inflate the layout for this fragment
@@ -100,10 +115,10 @@ public class NotePlainEditorFragment extends Fragment {
                     return;
                 }
 
-                Intent intent = new Intent(getActivity(),TakePhotoActivity.class);
+                Intent intent = new Intent(getActivity(), TakePhotoActivity.class);
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, mUri);
 
-                saveNote();
+               // saveNote();
 
                 //  Log.d("myLogs","mCurrentNote.getId() = " + mCurrentNote.getId());
 
@@ -120,22 +135,28 @@ public class NotePlainEditorFragment extends Fragment {
 
         //get the gallery view
         picGallery = (Gallery) mRootView.findViewById(R.id.gallery);
-//create a new adapter
+
+        //create a new adapter
         imgAdapt = new PicAdapter(getContext(), mCurrentNote);
 
-        picGalleryInit();
+        currentPic = 0;
+        /*try {
+            if (mCurrentNote.getUriList().size() > 0)
+                for (Uri uri : mCurrentNote.getUriList()) {
+                    addImageFromUriToAdapter(uri);
+                }
+        } catch (NullPointerException e) {}*/
+        populateImageAdapter();
+
+       // picGalleryInit();
 
         return mRootView;
     }
 
     void picGalleryInit() {
 
-
-
 //set the gallery adapter
         picGallery.setAdapter(imgAdapt);
-
-
 
         //set long click listener for each gallery thumbnail item
         picGallery.setOnItemLongClickListener(new Gallery.OnItemLongClickListener() {
@@ -165,7 +186,6 @@ public class NotePlainEditorFragment extends Fragment {
                 picView.setImageBitmap(imgAdapt.getPic(position));
             }
         });
-
 
 
     }
@@ -210,22 +230,15 @@ public class NotePlainEditorFragment extends Fragment {
 
             if (id > 0) {
                 mCurrentNote = NoteManager.newInstance(getActivity()).getNote(id);
-                //  Log.d("myLogs", "got mCurrentNote = " + mCurrentNote.getId());
+                  Log.d("myLogsUri", "got mCurrentNote = " + mCurrentNote.getId());
             }
         }
+
+        /*// TODO экспериментально добавил создание mCurrentNote в onCreate
+        if (mCurrentNote == null)
+            mCurrentNote = new Note();*/
     }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
-        getCurrentNote();
-
-
-
-        // TODO я добавил - убрать или оставить?
-        //onResume();
-    }
 
     @Override
     public void onResume() {
@@ -233,17 +246,38 @@ public class NotePlainEditorFragment extends Fragment {
         if (mCurrentNote != null) {
             populateFields();
 
-            /*if (mCurrentNote.getUriList().size() > 0)
-            for (Uri uri: mCurrentNote.getUriList() ) {
-                populateImageAdapter(uri);
-            }*/
+           currentPic = 0;
+           /*  try {
+                if (mCurrentNote.getUriList().size() > 0)
+                    for (Uri uri : mCurrentNote.getUriList()) {
+                        addImageFromUriToAdapter(uri);
+                    }
+            } catch (NullPointerException e) {}
 
-           // picGalleryInit();
+             picGalleryInit();*/
+
+            populateImageAdapter();
 
         }
     }
 
-    void populateImageAdapter(Uri uri) {
+    void populateImageAdapter() {
+
+        imgAdapt.clear();
+
+        try {
+            if (mCurrentNote.getUriList().size() > 0)
+                for (Uri uri : mCurrentNote.getUriList()) {
+                    addImageFromUriToAdapter(uri);
+                }
+        } catch (NullPointerException e) {}
+
+        picGalleryInit();
+    }
+
+
+
+    void addImageFromUriToAdapter(Uri uri) {
         Uri addingUri = uri;
 
         //declare the bitmap
@@ -253,7 +287,7 @@ public class NotePlainEditorFragment extends Fragment {
         String imgPath = "";
 
         //retrieve the string using media data
-        String[] medData = { MediaStore.Images.Media.DATA };
+        String[] medData = {MediaStore.Images.Media.DATA};
         //query the data
         /*Cursor picCursor = getContext().getContentResolver().query(addingUri, medData, null, null, null);
         if(picCursor!=null)
@@ -264,16 +298,16 @@ public class NotePlainEditorFragment extends Fragment {
             imgPath = picCursor.getString(index);
         }
         else */
-            imgPath = addingUri.getPath();
+        imgPath = addingUri.getPath();
 
 
-       // picCursor.close();
+        // picCursor.close();
 
         // ТУТ НАЧИНАЕТСЯ ДЕКОДИРОВАНИЕ РАЗМЕРА РИСУНКА
         // - может вынести в отдельную процедуру?
 
         //if we have a new URI attempt to decode the image bitmap
-        if(addingUri!=null) {
+        if (addingUri != null) {
             //set the width and height we want to use as maximum display
             // TODO вынести параметры ресемпла изображений в настройки или в параметры
             int targetWidth = 600;
@@ -294,13 +328,12 @@ public class NotePlainEditorFragment extends Fragment {
             int sampleSize = 1;
 
             //calculate the sample size if the existing size is larger than target size
-            if (currHeight>targetHeight || currWidth>targetWidth)
-            {
+            if (currHeight > targetHeight || currWidth > targetWidth) {
                 //use either width or height
-                if (currWidth>currHeight)
-                    sampleSize = Math.round((float)currHeight/(float)targetHeight);
+                if (currWidth > currHeight)
+                    sampleSize = Math.round((float) currHeight / (float) targetHeight);
                 else
-                    sampleSize = Math.round((float)currWidth/(float)targetWidth);
+                    sampleSize = Math.round((float) currWidth / (float) targetWidth);
             }
 
             //use the new sample size
@@ -360,7 +393,8 @@ public class NotePlainEditorFragment extends Fragment {
 
         mContentEditText.setText(mCurrentNote.getContent()
                 /*+ " ------------------------- "
-                + mCurrentNote.getUriList().toString()*/ );
+                + mCurrentNote.getUriList().toString()*/);
+
     }
 
 
@@ -373,10 +407,10 @@ public class NotePlainEditorFragment extends Fragment {
         }
 
         String content = mContentEditText.getText().toString();
-        if (TextUtils.isEmpty(content)) {
+        /*if (TextUtils.isEmpty(content)) {
             mContentEditText.setError("Content is required");
             return false;
-        }
+        }*/
 
 
         if (mCurrentNote != null) {
@@ -386,22 +420,47 @@ public class NotePlainEditorFragment extends Fragment {
 
 
 
-            mCurrentNote.setUriList(arrayListUri);
+           // это может это делать в onActivityResult??
+
+           // mCurrentNote.setUriList(fragmentArrayListUri);
+
+            Log.d("myLogsUri","mCurrentNote.getUriList().toString() before updating note" + mCurrentNote.getUriList().toString());
+
+            if (fragmentArrayListUri.size() > 0) {
+                mCurrentNote.addToUriList(fragmentArrayListUri);
+                fragmentArrayListUri.clear();
+            }
+
+            Log.d("myLogsUri","mCurrentNote.getUriList().toString() after updating note" + mCurrentNote.getUriList().toString());
+
 
             NoteManager.newInstance(getActivity()).update(mCurrentNote);
 
         } else {
 
-            Note note = new Note();
+           // Note note = new Note();
 
-            note.setTitle(title);
-            note.setContent(content);
+            mCurrentNote = new Note();
 
-            note.setUriList(arrayListUri);
+            mCurrentNote.setTitle(title);
+            mCurrentNote.setContent(content);
 
-            mCurrentNote = note;
 
-            NoteManager.newInstance(getActivity()).create(note);
+            mCurrentNote.setUriList(new ArrayList<Uri>());
+            // TODO разобраться что сюда добавлять - uriList или fragmentArrayListUri
+
+            Log.d("myLogsUri","mCurrentNote.getUriList().toString() before creating note" + mCurrentNote.getUriList().toString());
+
+            // mCurrentNote = note;
+
+            if (fragmentArrayListUri.size() > 0) {
+                mCurrentNote.addToUriList(fragmentArrayListUri);
+                fragmentArrayListUri.clear();
+            }
+
+            Log.d("myLogsUri","mCurrentNote.getUriList().toString() after creating note" + mCurrentNote.getUriList().toString());
+
+            NoteManager.newInstance(getActivity()).create(mCurrentNote);
         }
         return true;
 
@@ -438,51 +497,83 @@ public class NotePlainEditorFragment extends Fragment {
         super.onActivityResult(requestCode, resultCode, data);
 
 
-        ArrayList<Uri> uriList = new ArrayList<>();
-
-
         if (requestCode == PHOTO_INTENT_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
                 // try {
+
+                ArrayList<Uri> uriListFromPhotoIntent = new ArrayList<>();
 
                 ArrayList<String> stringUriList;
 
                 stringUriList = data.getStringArrayListExtra("uriList");
 
-                Log.d("myLogs", "stringUriList.size() in NotePlainEditorFragment = " + stringUriList.size()
-                        + " stringUriList = " + stringUriList.toString());
+                Log.d("myLogsUri", "stringUriList.size() in NotePlainEditorFragment = " + stringUriList.size()
+                        + ", stringUriList = " + stringUriList.toString());
+
+                // TODO как лучше оформить проверку на наличие чего-либо в получаемом stringUriList
+                if (stringUriList.size() > 0) {
+
+                    for (String string : stringUriList) {
+                        uriListFromPhotoIntent.add(Uri.parse(string));
+                    }
+
+                    Log.d("myLogsUri","uriListFromPhotoIntent.size() = " + uriListFromPhotoIntent.size() + ", uriListFromPhotoIntent = " + uriListFromPhotoIntent.toString());
+
+                    Log.d("myLogsUri","fragmentArrayListUri.size() before addAll = " + fragmentArrayListUri.size() + ", fragmentArrayListUri = " + fragmentArrayListUri.toString());
+                    fragmentArrayListUri.addAll(uriListFromPhotoIntent/*.takePhotoActivityUriArrayList*/);
+                    Log.d("myLogsUri","fragmentArrayListUri.size() after addAll = " + fragmentArrayListUri.size() + ", fragmentArrayListUri = " + fragmentArrayListUri.toString());
 
 
-                for (String string : stringUriList) {
-                    uriList.add(Uri.parse(string));
+                   /* try {
+                        if (uriListFromPhotoIntent.size() > 0)
+
+                            imgAdapt.clear();
+
+                        for (Uri uri : uriListFromPhotoIntent) {
+                                addImageFromUriToAdapter(uri);
+                            }
+
+                        picGalleryInit();
+
+                    } catch (NullPointerException e) {}*/
+
+
                 }
-
-                arrayListUri.addAll(uriList/*.takePhotoActivityUriArrayList*/);
 
                 // Выводим УРИ полученных фото в содержиое заметки - было нужно для отладки
                 /*StringBuilder sb = new StringBuilder();
 
-                for (Uri uri2 : arrayListUri) {
+                for (Uri uri2 : fragmentArrayListUri) {
                     sb.append(uri2.toString() + " .*^*. ");
-                }*/
+                }
 
-                mCurrentNote.setContent(mCurrentNote.getContent() /*+ " ----GOT_PHOTOS_LIST_FROM_PHOTO_INTENT--------------------- " + sb.toString()*/);
+                mCurrentNote.setContent(mCurrentNote.getContent()
+                        /+ " ----GOT_PHOTOS_LIST_FROM_PHOTO_INTENT--------------------- " + sb.toString());*/
             }
-            /*} catch (NullPointerException e) {
+            /* catch (NullPointerException e) {
 
                 Toast.makeText(getContext()," null uriListOBJECT got from PhotoActivity",Toast.LENGTH_LONG);
                 mCurrentNote.setContent(mCurrentNote.getContent() + " null uriListOBJECT got from PhotoActivity");
                 Log.d("myLogs"," null uriListOBJECT got from PhotoActivity");
             }*/
 
+           // mCurrentNote = new Note();
+           // Log.d("myLogsUri","mCurrentNote.getUriList() onActivityResult = " + mCurrentNote.getUriList());
+
+            /*if (mCurrentNote.getUriList().size() > 0)
+                for (Uri uri : mCurrentNote.getUriList()) {
+                    addImageFromUriToAdapter(uri);
+                }*/
+
+          //  saveNote(); //
 
 
-            if (mCurrentNote.getUriList().size() > 0)
-                for (Uri uri: mCurrentNote.getUriList() ) {
-                    populateImageAdapter(uri);
-                }
 
-            picGalleryInit();
+          //  saveNote(); //
+           // populateImageAdapter();
+
+
+
         }
 
         if (resultCode == RESULT_OK) {
@@ -500,17 +591,15 @@ public class NotePlainEditorFragment extends Fragment {
                 String imgPath = "";
 
                 //retrieve the string using media data
-                String[] medData = { MediaStore.Images.Media.DATA };
+                String[] medData = {MediaStore.Images.Media.DATA};
                 //query the data
                 Cursor picCursor = getContext().getContentResolver().query(pickedUri, medData, null, null, null);
-                if(picCursor!=null)
-                {
+                if (picCursor != null) {
                     //get the path string
                     int index = picCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
                     picCursor.moveToFirst();
                     imgPath = picCursor.getString(index);
-                }
-                else
+                } else
                     imgPath = pickedUri.getPath();
 
 
@@ -520,7 +609,7 @@ public class NotePlainEditorFragment extends Fragment {
                 // - может вынести в отдельную процедуру?
 
                 //if we have a new URI attempt to decode the image bitmap
-                if(pickedUri!=null) {
+                if (pickedUri != null) {
                     //set the width and height we want to use as maximum display
                     // TODO вынести параметры ресемпла изображений в настройки или в параметры
                     int targetWidth = 600;
@@ -541,13 +630,12 @@ public class NotePlainEditorFragment extends Fragment {
                     int sampleSize = 1;
 
                     //calculate the sample size if the existing size is larger than target size
-                    if (currHeight>targetHeight || currWidth>targetWidth)
-                    {
+                    if (currHeight > targetHeight || currWidth > targetWidth) {
                         //use either width or height
-                        if (currWidth>currHeight)
-                            sampleSize = Math.round((float)currHeight/(float)targetHeight);
+                        if (currWidth > currHeight)
+                            sampleSize = Math.round((float) currHeight / (float) targetHeight);
                         else
-                            sampleSize = Math.round((float)currWidth/(float)targetWidth);
+                            sampleSize = Math.round((float) currWidth / (float) targetWidth);
                     }
 
                     //use the new sample size
@@ -561,6 +649,7 @@ public class NotePlainEditorFragment extends Fragment {
 
                     //pass bitmap to ImageAdapter to add to array
                     imgAdapt.addPic(pic);
+
 //redraw the gallery thumbnails to reflect the new addition
                     picGallery.setAdapter(imgAdapt);
 
@@ -569,6 +658,9 @@ public class NotePlainEditorFragment extends Fragment {
 //scale options
                     picView.setScaleType(ImageView.ScaleType.FIT_CENTER);
                 }
+
+
+                picGalleryInit();
 
 
             }

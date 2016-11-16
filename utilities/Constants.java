@@ -5,7 +5,7 @@ package com.okason.simplenotepad.utilities;
  */
 public class Constants {
 
-    public static final String URI_DELIMITER = "_-_";
+    public static final String URI_DELIMITER = " ";
 
     public static final String NOTES_TABLE = "notes";
 
@@ -24,7 +24,5 @@ public class Constants {
             Constants.COLUMN_CONTENT,
             Constants.COLUMN_MODIFIED_TIME,
             Constants.COLUMN_CREATED_TIME,
-            Constants.COLUMN_PHOTOS_URI_LIST
-
-    };
+            Constants.COLUMN_PHOTOS_URI_LIST};
 }

@@ -4,20 +4,12 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.util.Log;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.okason.simplenotepad.models.Note;
-import com.okason.simplenotepad.models.UriList;
 import com.okason.simplenotepad.utilities.Constants;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -54,7 +46,10 @@ public class NoteManager {
 
         String arrayListString = convertArrayListUriToString(note.getUriList());
 
+       // if (arrayListString.length()>0)
         values.put(Constants.COLUMN_PHOTOS_URI_LIST, arrayListString);
+
+        Log.d("myLogsUri","arrayListString before putting to DB in NoteManager.create() = " + arrayListString);
 
         Uri result = mContext.getContentResolver().insert(NoteContentProvider.CONTENT_URI, values);
         long id = Long.parseLong(result.getLastPathSegment());
@@ -72,6 +67,10 @@ public class NoteManager {
 
         values.put(Constants.COLUMN_PHOTOS_URI_LIST, arrayListString);
 
+        Log.d("myLogsUri","arrayListString before putting to DB in NoteManager.update() = " + arrayListString);
+
+        values.put(Constants.COLUMN_PHOTOS_URI_LIST, arrayListString);
+
         mContext.getContentResolver().update(NoteContentProvider.CONTENT_URI,
                 values, Constants.COLUMN_ID  + "=" + note.getId(), null);
 
@@ -79,16 +78,24 @@ public class NoteManager {
 
     static String convertArrayListUriToString(ArrayList<Uri> uriList) {
         StringBuilder sb = new StringBuilder();
+       // sb.append(Constants.URI_DELIMITER);
+
         for (Uri uri: uriList) {
+
 
             if (uriList.size() == 0)
                 return null;
 
-            sb.append(uri.toString());
-            sb.append(Constants.URI_DELIMITER);
+            if (uri.toString().length() > 2) {
+                sb.append(uri.toString());
+                sb.append(Constants.URI_DELIMITER);
+            }
         }
 
-        return sb.toString();
+        Log.d("myLogsUri"," convertArrayListUriToString = " + sb.toString().trim());
+
+        // DELIMITER is space that's why trim актуален. При изменении разделителя поменять трим на отрезание последнего делимитера
+        return sb.toString().trim();
 
     }
 
@@ -103,7 +110,7 @@ public class NoteManager {
         if (cursor != null){
             cursor.moveToFirst();
             while (!cursor.isAfterLast()){
-                notes.add(Note.getNotefromCursor(cursor));
+                notes.add(Note.getNoteFromCursor(cursor));
                 cursor.moveToNext();
             }
             cursor.close();
@@ -117,7 +124,7 @@ public class NoteManager {
                 Constants.COLUMNS, Constants.COLUMN_ID + " = " + id, null, null);
         if (cursor != null){
             cursor.moveToFirst();
-            note = Note.getNotefromCursor(cursor);
+            note = Note.getNoteFromCursor(cursor);
             return note;
         }
         return null;

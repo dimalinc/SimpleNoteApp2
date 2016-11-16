@@ -18,8 +18,6 @@ import com.okason.simplenotepad.models.Note;
 
 public class PicAdapter extends BaseAdapter {
 
-
-
     //use the default gallery background image
     int defaultItemBackground;
 
@@ -28,6 +26,8 @@ public class PicAdapter extends BaseAdapter {
 
     //array to store bitmaps to display
     private Bitmap[] imageBitmaps;
+
+    private final int imageBitmapsArraySize = 9;
 
     //placeholder bitmap for empty spaces in gallery
     Bitmap placeholder;
@@ -38,7 +38,7 @@ public class PicAdapter extends BaseAdapter {
         galleryContext = c;
 
         //create bitmap array
-        imageBitmaps  = new Bitmap[/*mCurrentNote.getUriList().size()+1*/ 9];
+        imageBitmaps  = new Bitmap[/*mCurrentNote.getUriList().size()+1*/ imageBitmapsArraySize];
 
         //decode the placeholder image
         placeholder = BitmapFactory.decodeResource(galleryContext.getResources(), R.drawable.ic_launcher);
@@ -89,6 +89,11 @@ public class PicAdapter extends BaseAdapter {
         imageView.setBackgroundResource(defaultItemBackground);
         //return the view
         return imageView;
+    }
+
+    public void clear() {
+        imageBitmaps  = new Bitmap[/*mCurrentNote.getUriList().size()+1*/ imageBitmapsArraySize];
+        NotePlainEditorFragment.currentPic = 0;
     }
 
     //helper method to add a bitmap to the gallery when the user chooses one
